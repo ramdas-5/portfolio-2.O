@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+/* Smooth page scrolling (anchor jumps, programmatic scrolls).
+   Skipped when the user prefers reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Lenis smooth scrolling (main.jsx) — recommended styles */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Hide the page scrollbar (scrolling still works via wheel / touch / keys) */
+html {
+  scrollbar-width: none; /* Firefox */
+}
+
+html::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Edge */
+}
+
+/* Users who prefer reduced motion: stop looping/entrance animations outright.
+   Components already check the query themselves for JS-driven motion; this
+   covers CSS-driven marquees and transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@theme {
+  /* Color tokens used by works-wheel.tsx (Certification). Defined here so its
+     label/index/cards render in the site palette; `--color-background` is left
+     undefined on purpose — the wheel stays transparent and the KineticGrid
+     dots show through, like every other section. */
+  --color-foreground: #f1efea;
+  --color-muted: #2a2733;
+  --color-muted-foreground: rgba(241, 239, 234, 0.55);
+
+  --animate-blob: blob 20s ease-in-out infinite;
+
+  @keyframes blob {
+    0%,
+    100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(2.5rem, -3rem) scale(1.08);
+    }
+    66% {
+      transform: translate(-2rem, 1.5rem) scale(0.94);
+    }
+  }
+}
+
+/* Marquee animations (marquee.tsx). Defined directly instead of via
+   --animate-* because a var() reference inside a :root theme value is
+   substituted at :root — where --duration does not exist — and the browser
+   discards the whole animation. Longhands keep the component's
+   reverse / pause-on-hover utilities working. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+  }
+}
+
+@keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+  }
+}
+
+/* "Full Stack Web Dev" heading in the About section.
+   Fluid font-size so it scales smoothly on any viewport instead of
+   jumping between fixed breakpoint sizes. Tweak the clamp values to taste:
+   min = smallest size, preferred = scales with viewport width, max = cap. */
+.about-role-text {
+  font-size: clamp(1.5rem, 8vw, 6rem);
+  /* Never let a long word overflow the box on narrow screens */
+  overflow-wrap: break-word;
+  /* Leftward shift, but scaled to viewport width so it never pushes the
+     text off-screen (the page wrapper clips anything outside the viewport).
+     Keeps the look on wide screens; backs off automatically on zoom/narrow. */
+  margin-left: clamp(-250px, -10vw, 0px);
+}
+
+@layer utilities {
+  .animate-marquee {
+    animation-name: marquee;
+    animation-duration: var(--duration, 40s);
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+
+  .animate-marquee-vertical {
+    animation-name: marquee-vertical;
+    animation-duration: var(--duration, 40s);
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+}
