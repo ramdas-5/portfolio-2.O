@@ -16,6 +16,7 @@ import ScrollReveal from './components/ScrollReveal.tsx'
 import { CardSpotlight } from './components/CardSpotlight.tsx'
 import BeamBorder from './components/border-beam.tsx'
 import Lanyard from './components/Lanyard.tsx'
+import { MacbookExperience } from './components/macbook-experience.tsx'
 import { WorksWheel } from './components/works-wheel.tsx'
 import aboutImage from './components/assest/about-side-image.png'
 import fleetraLogo from './components/assest/fleetralogo.png'
@@ -566,9 +567,13 @@ function App() {
       </div>
     </section>
 
-    {/* Professional Experience — BeamBorder's animated beam frames the card
-        (sunset variant matches the site's warm accents; theme forced to dark
-        since the component defaults to the OS light scheme). */}
+    {/* Professional Experience — a large Macbook (macbook-experience.tsx,
+        viewport-fit scaled, keyboard deck reused from macbook-scroll.tsx)
+        stays FIXED mid-screen with its lid held at a permanent lean-back
+        tilt. The BeamBorder card starts exactly on the screen — same box,
+        same tilt — and only the card moves: scrolling counter-rotates it to
+        upright (straight) while zooming it in 1.2×. The macbook itself never
+        animates. */}
     {/* TextReveal renders a single nowrap line (NBSP spaces, 1em mask), so the
         fontSize clamp is load-bearing: at a fixed 5rem this heading is 1128px
         wide and forced the whole page — hero included — into sideways scroll
@@ -581,25 +586,29 @@ function App() {
         fontSize="clamp(1.15rem, 5.7vw, 5rem)"
         className="mb-14"
       />
-      <div className="flex max-w-3xl flex-col gap-8">
+      <MacbookExperience>
         {experiences.map(exp => (
-          <BeamBorder key={exp.id} theme="dark" colorVariant="sunset" borderRadius={20}>
+          /* borderRadius={8} + h-full: the card docks onto the macbook screen,
+             so its beam and box must match the display's size and rounded-lg
+             corners exactly. Layout is forced horizontal (the screen is
+             landscape); the lanyard hides below sm to keep the row readable. */
+          <BeamBorder key={exp.id} theme="dark" colorVariant="sunset" borderRadius={8} className="h-full">
             <article
-              className="cursor-target rounded-[20px] p-8 md:p-10"
+              className="cursor-target h-full rounded-lg p-6 md:p-8"
               style={{
                 background: 'linear-gradient(180deg, #3a3644 0%, #27242f 100%)',
                 boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.07)',
                 color: '#f1efea',
               }}
             >
-              <div className="flex flex-col gap-8 md:flex-row md:items-stretch md:gap-10">
-                <div className="flex min-w-0 flex-1 flex-col">
-                  <header className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-2">
-                    <h3 className="text-[24px] leading-tight font-semibold tracking-[-0.01em] md:text-[28px]">
+              <div className="flex h-full flex-row items-stretch gap-6 md:gap-8">
+                <div className="flex min-w-0 flex-1 flex-col justify-center">
+                  <header className="mb-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <h3 className="text-[20px] leading-tight font-semibold tracking-[-0.01em] md:text-[22px]">
                       {exp.role}
                     </h3>
                     <span
-                      className="rounded-full px-3 py-1 text-[12px] font-semibold"
+                      className="rounded-full px-3 py-1 text-[11px] font-semibold"
                       style={{
                         background: 'rgba(255, 255, 255, 0.08)',
                         color: '#f1efea',
@@ -608,20 +617,20 @@ function App() {
                     >
                       {exp.type}
                     </span>
-                    <span className="ml-auto text-[15px]" style={{ color: 'rgba(241, 239, 234, 0.65)' }}>
+                    <span className="ml-auto text-[13px]" style={{ color: 'rgba(241, 239, 234, 0.65)' }}>
                       {exp.company}
                     </span>
                   </header>
-                  <ul className="flex flex-col gap-3">
+                  <ul className="flex flex-col gap-2">
                     {exp.points.map(point => (
                       <li
                         key={point}
-                        className="flex gap-3 text-[14px] leading-relaxed"
+                        className="flex gap-3 text-[13px] leading-relaxed"
                         style={{ color: 'rgba(241, 239, 234, 0.7)' }}
                       >
                         <span
                           aria-hidden="true"
-                          className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full"
+                          className="mt-[6px] h-1.5 w-1.5 shrink-0 rounded-full"
                           style={{ background: '#ff8a3d' }}
                         />
                         {point}
@@ -631,8 +640,9 @@ function App() {
                 </div>
                 {/* Draggable ID-badge lanyard — no front/back images, so the card
                     face stays plain (the ReactBits logo/text only ever lived in
-                    the component's demo props). */}
-                <div className="relative mx-auto h-72 w-full max-w-[300px] shrink-0 md:mx-0 md:h-auto md:w-[260px] md:max-w-none lg:w-[300px]">
+                    the component's demo props). Hidden below sm so the text keeps
+                    the whole screen-width card on phones. */}
+                <div className="relative hidden h-full shrink-0 sm:block sm:w-[190px] lg:w-[210px]">
                   <Lanyard
                     cardColor="#f1efea"
                     orientation="portrait"
@@ -651,7 +661,7 @@ function App() {
             </article>
           </BeamBorder>
         ))}
-      </div>
+      </MacbookExperience>
     </section>
 
     {/* Certification & Resume — TextReveal heading + WorksWheel. The wheel
