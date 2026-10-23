@@ -567,13 +567,17 @@ function App() {
       </div>
     </section>
 
-    {/* Professional Experience — a large Macbook (macbook-experience.tsx,
-        viewport-fit scaled, keyboard deck reused from macbook-scroll.tsx)
-        stays FIXED mid-screen with its lid held at a permanent lean-back
-        tilt. The BeamBorder card starts exactly on the screen — same box,
-        same tilt — and only the card moves: scrolling counter-rotates it to
-        upright (straight) while zooming it in 1.2×. The macbook itself never
-        animates. */}
+    {/* Professional Experience — a large Macbook seen FROM ABOVE (true-3D
+        top view: camera pitched ~70°, keyboard deck nearly facing the viewer
+        and dominating the frame, screen at the far edge tilted away;
+        normally open at 110°; macbook-experience.tsx, viewport-fit scaled,
+        keyboard deck reused from macbook-scroll.tsx).
+        Scroll timeline: entry hold (card exactly on the screen — same box,
+        same tilt, macbook still) → ONE shared window where the card tilts
+        world-straight + zooms 1.25× WHILE the laptop rises up and out (its
+        scroll stops exactly when the card is straight) → the card alone
+        until the sticky releases. The card is a sibling of the exiting
+        subtree, so the rise never drags it along. */}
     {/* TextReveal renders a single nowrap line (NBSP spaces, 1em mask), so the
         fontSize clamp is load-bearing: at a fixed 5rem this heading is 1128px
         wide and forced the whole page — hero included — into sideways scroll
