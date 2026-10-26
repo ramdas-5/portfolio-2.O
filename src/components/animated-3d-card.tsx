@@ -83,7 +83,9 @@ const SIZES = {
 const VARIANTS = {
   default: "shadow-lg hover:shadow-2xl",
   minimal: "shadow-md hover:shadow-lg border border-white/10",
-  premium: "shadow-xl hover:shadow-2xl ring-1 ring-white/20",
+  /* No drop shadow: its outer shade pooled in the gaps between cards.
+     The card's own face (gradient bg) and edge ring stay. */
+  premium: "ring-1 ring-white/20",
 } as const;
 
 const GRIDS = {

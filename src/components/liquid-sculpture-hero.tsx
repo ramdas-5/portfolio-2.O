@@ -11,6 +11,7 @@
 
 import * as React from "react"
 import TechText from "./techtext"
+import GooeyNav from "./GooeyNav"
 
 /* ────────────────────────────────────────────────────────────────────
    Engine (WebGL2 GPGPU particles)
@@ -1035,8 +1036,9 @@ export interface SculptureHeroProps {
 
   brand?: string
   navLinks?: SculptureHeroLink[]
-  navCta?: SculptureHeroLink
+  navCta?: SculptureHeroLink | null
   showNav?: boolean
+  navComponent?: React.ReactNode
 
   eyebrow?: string
   headline?: string
@@ -1118,14 +1120,17 @@ const DEFAULTS = {
   mobileDarkSrc: "https://cdn.21st.dev/assets/mirror/9a/9a82cb59be1bfde59855b79d7a565e487155a89f4d52eac74dcc10e267b2b6d1.webp",
   imageAlt: "Abstract sculpture of interwoven metallic filaments and particles",
   imageBackground: "#EAE9E7",
-  brand: "Forma®",
+  brand: "Ramdas Hembram",
   navLinks: [
-    { label: "Work", href: "#" },
-    { label: "Studio", href: "#" },
-    { label: "Approach", href: "#" },
-    { label: "Journal", href: "#" },
+    { label: "Home", href: "#home" },
+    { label: "About", href: "#about" },
+    { label: "Skills", href: "#skill" },
+    { label: "Projects", href: "#projects" },
+    { label: "Education", href: "#education" },
+    { label: "Experience", href: "#experience" },
+    { label: "Certifications", href: "#certification" },
   ],
-  navCta: { label: "Contact", href: "#" },
+  navCta: null as SculptureHeroLink | null,
   eyebrow: "Independent studio — Est. 2019",
   headline: "Form that\nanswers back.",
   headlineAccent: "answers back.",
@@ -1358,6 +1363,7 @@ export default function SculptureHero(props: SculptureHeroProps) {
     navLinks = DEFAULTS.navLinks,
     navCta = DEFAULTS.navCta,
     showNav = true,
+    navComponent,
     eyebrow = DEFAULTS.eyebrow,
     headline = DEFAULTS.headline,
     headlineAccent = DEFAULTS.headlineAccent,
@@ -1483,7 +1489,7 @@ export default function SculptureHero(props: SculptureHeroProps) {
     const nav = navRef.current
     const content = contentRef.current
     const band = {
-      top: nav ? nav.offsetTop + nav.offsetHeight + 8 : 16,
+      top: nav ? nav.offsetTop + nav.offsetHeight + 8 : 88,
       bottom: content ? content.offsetTop - 8 : h,
     }
     // a portrait sculpture on phones dissolves into the top of the copy
@@ -1686,37 +1692,45 @@ export default function SculptureHero(props: SculptureHeroProps) {
 
       {showNav && (
         <nav ref={navRef} className="sh-nav" aria-label="Primary">
-          <a className="sh-brand" href="#">
+          <a className="sh-brand" href="#home">
             {brand}
           </a>
-          <ul className="sh-links">
-            {navLinks.map((l, i) => (
-              <li key={i}>
-                <a className="sh-link" href={l.href}>
-                  {l.label}
-                </a>
-              </li>
-            ))}
-            {themeToggle && (
-              <li className="sh-keep">
-                <button
-                  type="button"
-                  className="sh-theme"
-                  aria-label={mode === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-                  onClick={() => setMode((m) => (m === "dark" ? "light" : "dark"))}
-                >
-                  {mode === "dark" ? <SunIcon /> : <MoonIcon />}
-                </button>
-              </li>
-            )}
-            {navCta && navCta.label && (
-              <li className="sh-keep">
-                <a className="sh-navcta" href={navCta.href}>
-                  {navCta.label}
-                </a>
-              </li>
-            )}
-          </ul>
+          {navComponent ?? (
+            <GooeyNav
+              items={navLinks}
+              initialActiveIndex={0}
+              theme="dark"
+              size="sm"
+              frame
+              particleCount={15}
+              spread={56}
+              animationTime={600}
+              timeVariance={300}
+              gooeyness={0.5}
+              wobble={0.5}
+              hoverEffect
+              className="hidden md:inline-flex"
+            />
+          )}
+          {themeToggle && (
+            <div className="sh-keep">
+              <button
+                type="button"
+                className="sh-theme"
+                aria-label={mode === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                onClick={() => setMode((m) => (m === "dark" ? "light" : "dark"))}
+              >
+                {mode === "dark" ? <SunIcon /> : <MoonIcon />}
+              </button>
+            </div>
+          )}
+          {navCta && navCta.label && (
+            <div className="sh-keep">
+              <a className="sh-navcta" href={navCta.href}>
+                {navCta.label}
+              </a>
+            </div>
+          )}
         </nav>
       )}
 

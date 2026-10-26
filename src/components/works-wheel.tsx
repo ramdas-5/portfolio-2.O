@@ -2,15 +2,15 @@
 
 // A portfolio index built as a wheel you turn.
 //
-// At rest the work sits in a ring around a title, each card tangent to the
-// circle. The first notch of scroll blows the ring open into a vertical drum:
-// the card at the front lies flat and full size, the ones above and below
-// rotate away into hard perspective and run off the top and bottom of the
-// frame. Keep turning and the drum carries the next piece round to the front.
+// The wheel rests on its drum, not on a ring: the first thing the reader sees is
+// one full-size card at the front. Scrolling turns the next piece round to the
+// front, one per notch, with the neighbours rotated away into hard perspective
+// and run off the top and bottom of the frame.
 //
 // The whole thing is one number - `turn` - read by a single rAF pass that writes
-// transforms straight to the DOM. 0 is the ring, 1 is the drum with item 0 at
-// the front, and every whole number after that is one more item turned past.
+// transforms straight to the DOM. 1 is the drum with item 0 at the front, and
+// every whole number after that is one more item turned past. (0 is the ring
+// that existed before; the wheel now opens already past that notch.)
 import * as React from "react";
 import { createPortal } from "react-dom";
 
@@ -65,15 +65,16 @@ const RING_PAD = 0.1; // card heights of air kept inside the frame edges
 const BOW = 1.82;
 const TITLE = 0.124; // ring label and front-card title
 const INDEX = 0.04; // the index down the right-hand side
-/** Items either side of the front still worth drawing. Past this a card is
-    edge-on, and further round it would stack up on the vanishing point. */
-const CULL = 1.6;
+
+/** The drum's first notch. The wheel opens here, so the first look is item 0
+    full size instead of every card fanned round the ring. */
+const START = 1;
 
 /** How much of a wheel-notch or a dragged pixel counts as one item. */
-// One mouse notch is ~100px, so a unit of 100 makes "the first notch blows the
-// ring open" literally true and each further notch turn one item. At 900 a slow
-// notch settled back to where it started while the range check kept cancelling
-// the page scroll — freezing the reader at both ends on real wheel hardware.
+// One mouse notch is ~100px, so a unit of 100 makes each notch turn one item.
+// At 900 a slow notch settled back to where it started while the range check
+// kept cancelling the page scroll — freezing the reader at both ends on real
+// wheel hardware.
 const WHEEL_UNITS = 100;
 const DRAG_UNITS = 420;
 /** Quiet time after the last wheel event before the wheel settles on an item. */
@@ -143,8 +144,8 @@ export function WorksWheel({
 
   // The wheel's position, and where it is heading. Only `active` is state -
   // everything else is written to the DOM, so turning the wheel is not a render.
-  const turn = React.useRef(0);
-  const target = React.useRef(0);
+  const turn = React.useRef(START);
+  const target = React.useRef(START);
   const [active, setActive] = React.useState(0);
   const [stage, setStage] = React.useState<Stage>({ w: 0, h: 0 });
 
@@ -272,10 +273,12 @@ export function WorksWheel({
             bow,
             m,
           );
-          // Culled by distance, not by angle: at a full turn the far side comes
-          // back round to face us, and everything past the neighbours lands on
-          // the vanishing point in a heap.
-          card.style.opacity = m > 0.5 && Math.abs(d) > CULL ? "0" : "1";
+          // One card at a time: fade a card out as it turns away from the
+          // front, so the wheel never rests with neighbours peeking into the
+          // frame (they did on narrow stages, where the cards are small).
+          const fade = clamp(1 - (Math.abs(d) - 0.3) / 0.45, 0, 1);
+          card.style.opacity = String(fade);
+          card.style.pointerEvents = fade > 0.05 ? "" : "none";
           card.style.zIndex = String(Math.round(100 - Math.abs(d) * 2));
         }
         const face = card?.firstElementChild as HTMLElement | null;
@@ -300,7 +303,7 @@ export function WorksWheel({
   const to = React.useCallback(
     (next: number) => {
       if (openedRef.current) return; // the wheel does not turn behind the viewer
-      target.current = clamp(next, 0, last + 1);
+      target.current = clamp(next, START, last + START);
     },
     [last],
   );
@@ -351,7 +354,9 @@ export function WorksWheel({
     if (!el) return;
     const onWheel = (event: WheelEvent) => {
       const next = target.current + event.deltaY / WHEEL_UNITS;
-      if (next > 0 && next < last + 1) event.preventDefault();
+      // Only hold the page while there is another card to turn to. Scrolling
+      // up from the first card (and down past the last) scrolls the page.
+      if (next > START && next < last + START) event.preventDefault();
       to(next);
       // A wheel gesture arrives as a burst of events with no end of its own, so
       // the rest position is whatever notch it happened to stop on. Left there
@@ -416,7 +421,7 @@ export function WorksWheel({
           const wasTap = startedHere && !dragged.current;
           tapAt.current = null;
           drag.current = null;
-          if (target.current > 1) to(Math.round(target.current));
+          if (target.current > START) to(Math.round(target.current));
           // A tap that never travelled opens the card it came down on - the
           // click-to-enlarge of DomeGallery, keyed off pointer events because
           // the stage holds capture and would otherwise swallow the click.
@@ -524,7 +529,7 @@ export function WorksWheel({
       </div>
       <div
         ref={titleRef}
-        className="pointer-events-none absolute top-1/2 left-[8%] -translate-y-1/2 tracking-tight opacity-0"
+        className="pointer-events-none absolute top-[7%] left-[8%] max-w-[76%] tracking-tight opacity-0"
         style={{ fontSize: metrics.title }}
       >
         {items[active]?.title}
@@ -538,7 +543,7 @@ export function WorksWheel({
           <li key={item.title}>
             <button
               type="button"
-              onClick={() => to(i + 1)}
+              onClick={() => to(i + START)}
               className={cn(
                 "focus-visible:outline-foreground cursor-pointer transition-colors outline-none focus-visible:outline-1",
                 i === active && "text-foreground font-medium",

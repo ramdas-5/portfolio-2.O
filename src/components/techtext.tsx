@@ -82,6 +82,14 @@ const smoothstep = (edge0: number, edge1: number, value: number) => {
   return t * t * (3 - 2 * t);
 };
 
+/* Clamp a dragged glyph's target so its box always stays inside the canvas
+   (8px inset). The bitmap ends at the line box, so an unconstrained drag
+   slid the letter past the edge and clipped it out of view — it looked
+   hidden under the background until release. If the box is smaller than the
+   canvas minus insets, pin to center instead. */
+const keepIn = (min: number, max: number, value: number) =>
+  min > max ? (min + max) / 2 : Math.min(Math.max(value, min), max);
+
 const noise = (...values: number[]) => {
   let h = 2166136261;
   for (const value of values) {
@@ -805,8 +813,20 @@ const TechText = ({
       let moving = false;
       glyphs.forEach((glyph, i) => {
         if (i === dragging) {
-          glyph.offset.x = approach(glyph.offset.x, pointer.x - grab.x, dt, 0.03);
-          glyph.offset.y = approach(glyph.offset.y, pointer.y - grab.y, dt, 0.03);
+          /* Follow the pointer, clamped so the letter never leaves the
+             canvas — it stays fully visible for the whole drag. */
+          glyph.offset.x = approach(
+            glyph.offset.x,
+            keepIn(8 - glyph.box.x1, width - 8 - glyph.box.x2, pointer.x - grab.x),
+            dt,
+            0.03
+          );
+          glyph.offset.y = approach(
+            glyph.offset.y,
+            keepIn(8 - glyph.box.y1, height - 8 - glyph.box.y2, pointer.y - grab.y),
+            dt,
+            0.03
+          );
           glyph.velocity.x = 0;
           glyph.velocity.y = 0;
           moving = true;

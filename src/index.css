@@ -104,10 +104,9 @@ html::-webkit-scrollbar {
   font-size: clamp(1.5rem, 8vw, 6rem);
   /* Never let a long word overflow the box on narrow screens */
   overflow-wrap: break-word;
-  /* Leftward shift, but scaled to viewport width so it never pushes the
-     text off-screen (the page wrapper clips anything outside the viewport).
-     Keeps the look on wide screens; backs off automatically on zoom/narrow. */
-  margin-left: clamp(-250px, -10vw, 0px);
+  /* Pulled left of the About column on purpose — scaled with the viewport
+     so the offset grows on wider screens (final tuned value). */
+  margin-left: clamp(-380px, -18vw, 0px);
 }
 
 @layer utilities {

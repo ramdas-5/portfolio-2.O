@@ -28,6 +28,12 @@ type Spring = { x: number; v: number };
 const CORNER_ANGLES = [0, 90, 180, 270];
 const QUARTER = Math.PI / 2;
 
+/* A dark halo around every cursor part. Without it a white reticle vanishes
+   over the portfolio's white headline; with `mix-blend-mode: difference` it
+   was a no-op (black is the identity there), so this is what makes the cursor
+   readable on both dark and light backdrops. */
+const CURSOR_HALO = 'drop-shadow(0 0 0.5px rgba(0,0,0,0.9)) drop-shadow(0 0 1.5px rgba(0,0,0,0.45))';
+
 const spring = (state: Spring, goal: number, stiffness: number, damping: number, dt: number) => {
   const steps = 2;
   const h = dt / steps;
@@ -121,10 +127,16 @@ const TargetCursor = ({
     let lastLabel = '';
     let lastColor = '';
     let lastScope: HTMLElement | null = null;
+    // Frames that actually finished painting. The native cursor is only hidden
+    // once the overlay is provably on screen: if the custom cursor fails to
+    // draw (a browser dropping the blended fixed layer, an exception in the
+    // loop, a target that never yields a size) the reader would otherwise be
+    // left with no pointer at all.
+    let paintedFrames = 0;
 
     const scopeOf = () => resolveElement(settingsRef.current.container);
 
-    const hideCursor = () => {
+    const applyNativeCursor = () => {
       const s = settingsRef.current;
       const scope = scopeOf();
       if (scope !== lastScope) {
@@ -133,8 +145,9 @@ const TargetCursor = ({
         lastScope = scope;
       }
       const selector = scope ? '[data-target-cursor-scope]' : 'html';
-      const rule =
-        s.hideDefaultCursor && pointer.inside ? `${selector}, ${selector} * { cursor: none !important; }` : '';
+      const hide =
+        s.hideDefaultCursor && pointer.inside && paintedFrames > 0 && presence.x > 0.5;
+      const rule = hide ? `${selector}, ${selector} * { cursor: none !important; }` : '';
       if (style.textContent !== rule) style.textContent = rule;
     };
 
@@ -275,6 +288,8 @@ const TargetCursor = ({
         lastColor = color;
       }
       root.style.opacity = Math.max(0, Math.min(1, presence.x)).toFixed(3);
+      paintedFrames += 1;
+      applyNativeCursor();
 
       const resting =
         !pointer.inside &&
@@ -286,7 +301,10 @@ const TargetCursor = ({
       const moving =
         Math.abs(centerX.v) + Math.abs(centerY.v) + Math.abs(halfW.v) + Math.abs(halfH.v) + Math.abs(turn.v) > 0.01 ||
         Math.abs(goalX - centerX.x) + Math.abs(goalY - centerY.x) > 0.05 ||
-        Math.abs(lock.v) + Math.abs(press.v) + Math.abs(presence.v) > 0.001;
+        Math.abs(lock.v) + Math.abs(press.v) + Math.abs(presence.v) > 0.001 ||
+        // A fade that stalled short of its goal would leave the cursor stuck
+        // half transparent — or invisible while the native one is suppressed.
+        Math.abs(presence.x - (pointer.inside ? 1 : 0)) > 0.002;
       if (!resting && (spinning || moving || locked)) raf = requestAnimationFrame(frame);
       else last = 0;
     };
@@ -295,7 +313,7 @@ const TargetCursor = ({
       if (!raf) raf = requestAnimationFrame(frame);
     };
     wakeRef.current = () => {
-      hideCursor();
+      applyNativeCursor();
       wake();
     };
 
@@ -314,7 +332,8 @@ const TargetCursor = ({
       const inside = insideScope(pointer.x, pointer.y, event.target as Element | null);
       if (inside !== pointer.inside) {
         pointer.inside = inside;
-        hideCursor();
+        // Leaving: drop the rule on the spot instead of waiting for a frame.
+        applyNativeCursor();
       }
       lockOn(inside ? findTarget(pointer.x, pointer.y, event.target as Element | null) : null);
       wake();
@@ -335,7 +354,7 @@ const TargetCursor = ({
       pointer.inside = false;
       pointer.pressed = false;
       lockOn(null);
-      hideCursor();
+      applyNativeCursor();
       wake();
     };
 
@@ -386,15 +405,22 @@ const TargetCursor = ({
             cornerRefs.current[i] = element;
           }}
           className="absolute top-0 left-0 box-border origin-top-left border-solid [border-color:var(--target-cursor-color,#ffffff)] will-change-transform"
+          /* Hairline halo: when a browser ignores the blended layer (or the
+             blend mode is set to normal) the white brackets still read on a
+             light backdrop. Invisible under `difference`, where black is a
+             no-op. */
+          style={{ filter: CURSOR_HALO }}
         />
       ))}
       <span
         ref={dotRef}
         className="absolute top-0 left-0 rounded-full [background:var(--target-cursor-color,#ffffff)] will-change-transform"
+        style={{ filter: CURSOR_HALO }}
       />
       <span
         ref={labelRef}
         className="absolute top-0 left-0 text-[12px] leading-none font-medium whitespace-nowrap opacity-0 [color:var(--target-cursor-color,#ffffff)] will-change-[transform,opacity]"
+        style={{ filter: CURSOR_HALO }}
       />
     </div>,
     host

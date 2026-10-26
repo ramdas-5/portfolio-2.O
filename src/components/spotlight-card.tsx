@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react';
+import { HoverButton } from './hover-glow-button';
 
 /* Project card with ChromaGrid's spotlight reveal: the whole card renders in
    black & white, and a soft circle around the pointer brings it back to color.
@@ -50,11 +51,6 @@ const CHIP_STYLE: CSSProperties = {
   background: 'rgba(255, 255, 255, 0.07)',
   color: 'rgba(241, 239, 234, 0.6)',
   boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.08)'
-};
-const PILL_STYLE: CSSProperties = {
-  background: 'rgba(255, 255, 255, 0.08)',
-  color: '#f1efea',
-  boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)'
 };
 
 /* Identical geometry in both copies — padding lives here (not on the card
@@ -126,30 +122,42 @@ const CardContent = ({ item, decorative = false }: { item: SpotlightCardItem; de
           <span className="mt-2.5 flex flex-wrap gap-2">
             {item.links.map(link =>
               decorative ? (
-                <span
+                /* Disabled twin for the spotlight's color copy: identical
+                   geometry, not focusable, transparent pad so the live
+                   copy's pad and glow show through it. */
+                <HoverButton
                   key={link.href}
-                  className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-[12px] font-semibold"
-                  style={PILL_STYLE}
+                  disabled
+                  glowColor={accent}
+                  hoverTextColor={accent}
+                  backgroundColor="transparent"
+                  className="cursor-target opacity-100! px-6! py-3! text-base!"
                 >
-                  {link.label}
-                  <span aria-hidden="true" className="text-[10px] opacity-70">
-                    ↗
+                  <span className="inline-flex items-center gap-1">
+                    {link.label}
+                    <span aria-hidden="true" className="text-[0.7em] opacity-70">
+                      ↗
+                    </span>
                   </span>
-                </span>
+                </HoverButton>
               ) : (
-                <a
+                /* Live / GitHub button — hover-glow-button: a radial glow
+                   follows the cursor and blooms on hover, in the project's
+                   accent color. Opens the link in a new tab. */
+                <HoverButton
                   key={link.href}
-                  className="cursor-target inline-flex items-center gap-1 rounded-full px-3 py-1 text-[12px] font-semibold no-underline transition-[filter] duration-200 hover:brightness-125"
-                  style={PILL_STYLE}
-                  href={link.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  glowColor={accent}
+                  hoverTextColor={accent}
+                  className="cursor-target px-6! py-3! text-base!"
+                  onClick={() => window.open(link.href, '_blank', 'noopener,noreferrer')}
                 >
-                  {link.label}
-                  <span aria-hidden="true" className="text-[10px] opacity-70">
-                    ↗
+                  <span className="inline-flex items-center gap-1">
+                    {link.label}
+                    <span aria-hidden="true" className="text-[0.7em] opacity-70">
+                      ↗
+                    </span>
                   </span>
-                </a>
+                </HoverButton>
               )
             )}
           </span>

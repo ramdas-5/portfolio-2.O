@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import KineticGrid from './components/bg.tsx'
 import SculptureHero from './components/liquid-sculpture-hero.tsx'
+import GooeyNav from './components/GooeyNav.tsx'
 import FloatingDock from './components/floating-dock.tsx'
 import { Marquee } from './components/marquee.tsx'
 import { TextReveal } from './components/cascade-text.tsx'
@@ -18,7 +20,10 @@ import BeamBorder from './components/border-beam.tsx'
 import Lanyard from './components/Lanyard.tsx'
 import { MacbookExperience } from './components/macbook-experience.tsx'
 import { WorksWheel } from './components/works-wheel.tsx'
+import ContactWithGlobe from './components/contact-with-globe.tsx'
 import aboutImage from './components/assest/about-side-image.png'
+import studioPortrait from './components/assest/Studio Portrait of a Bearded Man.png'
+import stagePortrait from './components/assest/Confident South Asian Portrait on Stage.png'
 import fleetraLogo from './components/assest/fleetralogo.png'
 import mernCert from './components/assest/Mern.png'
 import advancedPythonCert from './components/assest/Advance_Python.png'
@@ -32,6 +37,9 @@ import {
   IconFolder,
   IconCertificate,
   IconTool,
+  IconMail,
+  IconSparkles,
+  IconLanguage,
 } from '@tabler/icons-react'
 import {
   Code,
@@ -87,15 +95,30 @@ import {
   SiPytest,
 } from 'react-icons/si'
 
+const navItems = [
+  { label: 'Home', href: '#home' },
+  { label: 'About', href: '#about' },
+  { label: 'Skills', href: '#skill' },
+  { label: 'Projects', href: '#projects' },
+  { label: 'Education', href: '#education' },
+  { label: 'Soft Skills', href: '#soft-skills' },
+  { label: 'Experience', href: '#experience' },
+  { label: 'Certifications', href: '#certification' },
+  { label: 'Languages', href: '#languages' },
+  { label: 'Contact', href: '#contact' },
+]
+
 const dockItems = [
   { title: 'Home', icon: <IconHome className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#home' },
   { title: 'About', icon: <IconUser className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#about' },
-  { title: 'Skill', icon: <IconCode className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#skill' },
-  { title: 'Experience', icon: <IconBriefcase className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#experience' },
-  { title: 'Education', icon: <IconSchool className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#education' },
+  { title: 'Skills', icon: <IconCode className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#skill' },
   { title: 'Projects', icon: <IconFolder className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#projects' },
-  { title: 'Certification', icon: <IconCertificate className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#certification' },
-  { title: 'Other Skills', icon: <IconTool className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#other-skills' },
+  { title: 'Education', icon: <IconSchool className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#education' },
+  { title: 'Soft Skills', icon: <IconSparkles className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#soft-skills' },
+  { title: 'Experience', icon: <IconBriefcase className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#experience' },
+  { title: 'Certifications', icon: <IconCertificate className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#certification' },
+  { title: 'Languages', icon: <IconLanguage className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#languages' },
+  { title: 'Contact', icon: <IconMail className="h-full w-full text-neutral-600 dark:text-neutral-400" />, href: '#contact' },
 ]
 
 const skillsRowOne = ['React', 'Next.js', 'JavaScript', 'TypeScript', 'HTML5', 'CSS3', 'Tailwind CSS', 'Vite']
@@ -343,30 +366,129 @@ const certifications = [
 ]
 
 function App() {
+  const [isScrolled, setIsScrolled] = useState(false)
+  const [activeNavIndex, setActiveNavIndex] = useState(0)
+
+  // The header stays put in both scroll directions; only its background
+  // changes once you leave the top of the page.
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Track active section in view.
+  // A line at 30% of the viewport decides it: the active item is the last
+  // section whose top has crossed that line. Picking the top-most section
+  // instead of "whichever intersects" keeps the pill on the section you are
+  // reading when the tail of the previous one is still on screen.
+  useEffect(() => {
+    const sectionIds = ['home', 'about', 'skill', 'projects', 'education', 'soft-skills', 'experience', 'certification', 'languages', 'contact']
+    let frame = 0
+
+    const update = () => {
+      frame = 0
+      const line = window.innerHeight * 0.3
+      let index = 0
+
+      sectionIds.forEach((id, i) => {
+        const el = document.getElementById(id)
+        if (el && el.getBoundingClientRect().top <= line) index = i
+      })
+
+      // A short last section may never reach the line; at the bottom of the
+      // page the last item is the one you are looking at.
+      const atBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 2
+      if (atBottom) index = sectionIds.length - 1
+
+      setActiveNavIndex(index)
+    }
+
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update)
+    }
+
+    update()
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+    }
+  }, [])
+
   return (
-    <main>
-    <KineticGrid>
-      <div id="home">
-        <SculptureHero
-          brand="Ramdas Hembram"
-          eyebrow="Welcome"
-          headline={'Ramdas Hembram\nportfolio'}
-          headlineAccent=""
-          techHeadline
-          /* Dark-only site: the light mode swaps the sculpture to light-palette
-             materials (near-black silhouette) while `--sh-bg: transparent`
-             keeps the rest dark — it could only ever break the hero. */
-          themeToggle={false}
-          body=""
-          primaryCta={null}
-          secondaryCta={null}
-          backdropText="ramdas"
-          theme="dark"
-          background="#111110"
-          darkBackground="#111110"
-          style={{ '--sh-bg': 'transparent' }}
-        />
-      </div>
+    <>
+      <header
+        className={`fixed top-0 left-0 right-0 z-50 transition-colors duration-300 ease-in-out ${
+          isScrolled
+            ? 'bg-[#111110]/80 backdrop-blur-md border-b border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.5)]'
+            : 'bg-transparent border-b border-transparent'
+        }`}
+      >
+        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 md:px-10">
+          <a
+            href="#home"
+            className="font-semibold text-[17px] tracking-[-0.02em] text-[#f1efea] hover:opacity-90 transition-opacity"
+            style={{ fontFamily: "'Geist', 'Helvetica Neue', Arial, sans-serif" }}
+          >
+            Ramdas Hembram
+          </a>
+
+          {/* The nav renders its own display class, so the wrapper owns the
+              breakpoint: below 1100px the ten items would wrap to two rows. */}
+          <div className="hidden min-[1100px]:block">
+            <GooeyNav
+              items={navItems}
+              activeIndex={activeNavIndex}
+              onChange={(index) => setActiveNavIndex(index)}
+              theme="dark"
+              size="sm"
+              frame
+              particleCount={15}
+              spread={56}
+              animationTime={600}
+              timeVariance={300}
+              gooeyness={0.5}
+              wobble={0.5}
+              hoverEffect
+            />
+          </div>
+        </div>
+      </header>
+
+      <main>
+      <KineticGrid>
+        <div id="home">
+          <SculptureHero
+            brand="Ramdas Hembram"
+            eyebrow="Welcome"
+            headline={'Ramdas Hembram\nportfolio'}
+            headlineAccent=""
+            techHeadline
+            showNav={false}
+            /* Dark-only site: the light mode swaps the sculpture to light-palette
+               materials (near-black silhouette) while `--sh-bg: transparent`
+               keeps the rest dark — it could only ever break the hero. */
+            themeToggle={false}
+            body=""
+            primaryCta={null}
+            secondaryCta={null}
+            backdropText="ramdas"
+            theme="dark"
+            background="#111110"
+            darkBackground="#111110"
+            style={{ '--sh-bg': 'transparent' }}
+          />
+        </div>
 
       <section className="relative overflow-hidden py-16">
         <Marquee pauseOnHover speed="normal">
@@ -401,8 +523,8 @@ function App() {
               text="About"
               as="h2"
               color="#f1efea"
-              fontSize="3.5rem"
-              className="mb-30 "
+              fontSize="clamp(1.5rem, 5.8vw, 5rem)"
+              className="mb-[clamp(2.5rem,6vw,6rem)]"
             />
             <SplitText
               text="Full Stack Web Dev"
@@ -425,7 +547,7 @@ function App() {
             />
           </div>
 
-          <div className="cursor-target h-[460px] w-[340px] shrink-0 sm:h-[480px] sm:w-[380px]" data-cursor-label="About">
+          <div className="cursor-target h-[460px] w-[340px] shrink-0 sm:h-[480px] sm:w-[380px] md:mt-32" data-cursor-label="About">
             <InteractiveTiltCard
               image={{ src: aboutImage, alt: 'Ramdas Hembram' }}
             />
@@ -434,6 +556,7 @@ function App() {
       </section>
 
       <section id="skill" className="px-6 py-24 md:pl-24 md:pr-10 md:py-32">
+        <span id="skills" className="sr-only" />
         <TextReveal
           text="Skills"
           as="h2"
@@ -527,7 +650,7 @@ function App() {
         textColor="#f1efea"
         mutedTextColor="rgba(241, 239, 234, 0.55)"
         backgroundColor="transparent"
-        imageUrl={aboutImage}
+        imageUrl={stagePortrait}
         imageAlt="Ramdas Hembram"
       />
     </section>
@@ -648,6 +771,9 @@ function App() {
                     the whole screen-width card on phones. */}
                 <div className="relative hidden h-full shrink-0 sm:block sm:w-[190px] lg:w-[210px]">
                   <Lanyard
+                    frontImage={studioPortrait}
+                    backImage={studioPortrait}
+                    imageFit="cover"
                     cardColor="#f1efea"
                     orientation="portrait"
                     finish="glossy"
@@ -680,6 +806,7 @@ function App() {
         ~1400px. Same treatment as "Professional Experience" — narrower than it,
         so 5.7vw is roomier for it too. */}
     <section id="certification" className="relative z-10 py-24 md:py-32">
+      <span id="certifications" className="sr-only" />
       <div className="px-6 md:pl-24 md:pr-10">
         <TextReveal
           text="Certification & Resume"
@@ -702,7 +829,7 @@ function App() {
         CardSpotlight.tsx renders it. `relative z-20` keeps the text above the
         z-0 overlay. Same root-level `relative z-10` section treatment as the
         neighbours so the fixed kinetic canvas shows through. */}
-    <section id="languages" className="relative z-10 px-6 py-24 md:pl-24 md:pr-10 md:py-32">
+    <section id="languages" className="relative z-10 px-6 py-24 md:px-24 md:py-32">
       <TextReveal
         text="Languages"
         as="h2"
@@ -710,7 +837,7 @@ function App() {
         fontSize="clamp(1.5rem, 12.2vw, 5rem)"
         className="mb-14"
       />
-      <div className="grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid w-full max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {languages.map(language => (
           <CardSpotlight key={language.title}>
             <div className="relative z-20 flex h-full min-h-[88px] flex-col justify-center">
@@ -726,6 +853,12 @@ function App() {
       </div>
     </section>
 
+    {/* Contact — email, location, LinkedIn and GitHub beside a live wireframe
+        globe (contact-with-globe.tsx) with a marker pinned on Kolkata, plus a
+        mailto form. Root-level `relative z-10` like the neighbouring sections so
+        the fixed kinetic canvas still shows through behind it. */}
+    <ContactWithGlobe />
+
     {/* Fixed UI at root level, OUTSIDE <main>: it's chrome, not content — and
         staying root-level keeps KineticGrid's `z-10` stacking context from
         trapping it (later sections would steal its pointer events otherwise). */}
@@ -739,7 +872,10 @@ function App() {
       dotSize={4}
       cursorColor="#ffffff"
       cursorColorOnTarget="#ffffff"
-      blendMode="difference"
+      /* Normal blending, not "difference": inverted dots lose all contrast
+         over the hero's mid-tone sculpture and read as a missing cursor. The
+         reticle carries its own dark halo so it still shows on light areas. */
+      blendMode="normal"
       parallaxOn
       matchRadius
       showLabel
@@ -750,6 +886,7 @@ function App() {
       <FloatingDock items={dockItems} />
     </div>
     </main>
+    </>
   )
 }
 
