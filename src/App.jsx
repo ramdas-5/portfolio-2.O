@@ -21,6 +21,7 @@ import Lanyard from './components/Lanyard.tsx'
 import { MacbookExperience } from './components/macbook-experience.tsx'
 import { WorksWheel } from './components/works-wheel.tsx'
 import ContactWithGlobe from './components/contact-with-globe.tsx'
+import GradualBlur from './components/GradualBlur.tsx'
 import aboutImage from './components/assest/about-side-image.png'
 import studioPortrait from './components/assest/Studio Portrait of a Bearded Man.png'
 import stagePortrait from './components/assest/Confident South Asian Portrait on Stage.png'
@@ -881,6 +882,30 @@ function App() {
       showLabel
       clickEffect
       hideDefaultCursor
+    />
+    <GradualBlur
+      position="top"
+      target="page"
+      height="5.5rem"
+      strength={2}
+      layers={6}
+      curve="ease-out"
+      exponential
+      zIndex={45}
+      tint="rgba(17, 17, 16, 0.4)"
+      autoHide
+    />
+    <GradualBlur
+      position="bottom"
+      target="page"
+      height="7.5rem"
+      strength={2.5}
+      layers={8}
+      curve="ease-out"
+      exponential
+      zIndex={40}
+      tint="rgba(17, 17, 16, 0.6)"
+      autoHide
     />
     <div className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2">
       <FloatingDock items={dockItems} />
